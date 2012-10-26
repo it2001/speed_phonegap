@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+		<meta charset="utf-8">
+
+		<!-- iPad/iPhone specific css below, add after your main css >
+		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />
+		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />
+		-->
+
+        <script type="text/javascript" charset="utf-8" src="js/jquery-1.6.4.min.js"></script>
+
+        <script type="text/javascript" charset="utf-8" src="js/base64.js"></script>
+        <script type="text/javascript" charset="utf-8" src="js/aes.js"></script>
+            
+		<script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
+		<script type="text/javascript" charset="utf-8" src="js/barcodescanner.js"></script>
+        <!--
+		<script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
+		<script type="text/javascript" charset="utf-8" src="NativeControls.js"></script>
+        -->
+
+		<script type="text/javascript">
+
+			function onBodyLoad() {
+                
+				document.addEventListener("deviceready", onDeviceReady, false);
+
+				resultSpan = document.getElementById("scan-result");
+
+			}
+
+			function onDeviceReady() {
+
+                // バーコード読み込み
+				window.plugins.barcodeScanner.scan(scannerSuccess, scannerFailure);
+			}
+
+			// Barcode 読み込み成功　---------------------------------------------------------
+			function scannerSuccess(result) {
+                console.log("scannerSuccess: result: " + result)
+				resultSpan.innerText = "success: " + JSON.stringify(result);
+                
+                // サーバ通信
+                var sample = sampleItem();
+                var url    = sample['url'];
+                var params = sample['params'];
+                
+                sendPost(url, params);
+			}
+
+			// Barcode 読み込み失敗　---------------------------------------------------------
+			function scannerFailure(message) {
+                console.log("scannerFailure: message: " + message)
+                resultSpan.innerText = "failure: " + JSON.stringify(message)
+                
+//                error = 'QRコードの読み取りに失敗しました';
+//				navigator.notification.alert(error);
+                
+                // サーバ通信
+                var sample = sampleItem();
+                var url    = sample['url'];
+                var params = sample['params'];
+                
+                sendPost(url, params);
+
+			}
+            
+            // サンプル データ ----------------------------------------------------------------
+            function sampleItem(){
+                
+                var qr_id = '2001010000160000038101';
+                var area_name = '北海道';
+                
+                var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
+                var params = {qr_id: qr_id, area_name: area_name};
+                
+                var sample = {url: url, params: params};
+                
+                return sample;
+            }
+            
+            
+			// POST通信 ---------------------------------------------------------------------
+            function sendPost(url, params){
+
+                $.post(
+                    url,     // アクセスするURL
+                    params,  // 送信データ
+                    function(data, status, XHR){  // 処理結果
+                       resultSpan.innerText = status + JSON.stringify(data);
+                
+                    }
+                );
+            }
+            
+            // GET通信 ---------------------------------------------------------------------
+            function sendGet(url, params){
+                
+                $.get(
+                    url,     // アクセスするURL
+                    params,  // 送信データ
+                    function(data, status, XHR){  // 処理結果
+                      if(status == 'success'){
+                        resultSpan.innerText = status + JSON.stringify(data);
+                      } else {
+                        resultSpan.innerText = status + JSON.stringify('NG');
+                      }
+                    }
+                );
+            }
+            
+           // base64 encode ---------------------------------------------------------------
+           function encBase64(str){
+               
+               b64_str = base64.encode(str, 1);
+               
+               return b64_str;
+           }
+           
+           // base64 decode ----------------------------------------------------------------
+           function decBase64(b64_str){
+               
+               str = base64.decode(b64_str, 1);
+               
+               return str;
+           }
+       
+           // JSON encode ------------------------------------------------------------------
+           function encJson(obj){
+               
+               json = JSON.stringify(obj);
+               
+               return json;
+           }
+           
+           // JSON decode ------------------------------------------------------------------
+           function decJson(json){
+               
+               obj = JSON.parse(json);
+               
+               return obj; // obj.params = value
+           }
+           
+           // AES128 encrypt CBC ------------------------------------------------------------
+           function encAes(str){
+               
+               var pass = randPass(10);
+               var encrypted = CryptoJS.AES.encrypt(str, pass);
+               var enc = new Array();
+               
+               enc['pass64']   = base64.encode(pass, 1);
+               enc['key64']    = base64.encode(encrypted.key, 1);
+               enc['iv64']     = base64.encode(encrypted.iv, 1);
+               enc['str64']    = base64.encode(encrypted, 1);
+               
+               return enc;
+           }
+           
+           // AES128 decrypt CBC -------------------------------------------------------------
+           function decAes(pass64, str64, key64, iv64){
+               
+               pass = base64.decode(pass64, 1);
+               encStr  = base64.decode(str64, 1);
+               key     = base64.decode(key64, 1);
+               iv      = base64.decode(iv64, 1);
+               
+               var decrypted = CryptoJS.AES.encrypt(encStr, pass);
+               
+               return decrypted;
+           }
+           
+           // ランダム文字列 -------------------------------------------------------------
+           function randPass(length){
+               
+               length = length || '';
+               var a = 'abcdefghijklmnopqrstuvwxyz'
+                   + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                   + '0123456789';
+               a = a.split('');
+               var pass = '';
+               for (var i = 0; i < n; i++) {
+                   pass += a[Math.floor(Math.random() * a.length)];
+               }
+               return pass;
+           }
+            
+            
+		</script>
+	</head>
+
+	<body onload="onBodyLoad()">
+
+		<div data-role="page" data-add-back-btn="false">
+            
+			<div data-role="header" data-position="inline">
+				<h1>Please wait...</h1>
+			</div>
+            
+			<div data-role="content">
+                
+                scanned: <span id="scan-result">n/a</span>
+				
+				<ul>
+                    <li><a href="index.html" >index</a></li>
+                    <li><a href="test.html" >Test</a></li>
+                    <li><a href="memo.html" >Memo</a></li>
+                </ul>
+                
+			</div>
+            
+		</div>
+
+	</body>
+</html>
+
