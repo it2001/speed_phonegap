@@ -15,6 +15,7 @@
 
 		<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
 		<script type="text/javascript" charset="utf-8" src="barcodescanner.js"></script>
+		<script type="text/javascript" charset="utf-8" src="js/base64.js"></script>
 
 		<script type="text/javascript">
 			function onBodyLoad() {
@@ -95,10 +96,11 @@
 				function(data, status, XHR) {// 処理結果
 
 					if (status == 'success') {
-						console.log("sendPost: " + status + ':' + JSON.stringify(data));
-
+						console.log("sendPost:data " + data);
+						console.log("sendPost:JSON.stringify " + JSON.stringify(data));
+						console.log("sendPost:base64 " + base64.encode(JSON.stringify(data)));
 						// 商品詳細
-						window.location.href = "show_item.html?item=" + JSON.stringify(data);
+						window.location.href = "show_item.html?item=" + base64.encode(JSON.stringify(data));
 
 					} else {
 						message = 'もう一度QRコードを撮影してください';
