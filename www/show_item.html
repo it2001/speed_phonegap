@@ -36,47 +36,12 @@
 				// Alert -----------------------------------------------------------------------
 				navigator.notification.alert("index.html");
 
-//				// tabbar ----------------------------------------------------------------------
-//                
-//                // Initializating TabBar
-//                if(!window.plugins){
-//                    window.plugins = {};
-//                    window.plugins.nativeControls = new NativeControls();
-//                }
-//                
-//                nc = window.plugins.nativeControls;
-//                nc.createTabBar();
-//                nc.createTabBarItem('whoTabItem', 'who', '', {"onSelect": function(){
-//                    navigator.notification.alert('who');
-//                }});
-//                nc.createTabBarItem('whereTabItem', 'where', '', {"onSelect": function(){
-//                    navigator.notification.alert('where');
-//                }});
-//                nc.createTabBarItem('whatTabItem', 'where', '', {"onSelect": function(){
-//                    navigator.notification.alert('where');
-//                }});
-//                nc.showTabBar();
-//                nc.showTabBarItems('whoTabItem', 'whereTabItem', 'whatTabItem');
-//                nativeControls.selectTabBarItem('whoTabItem');
-//                
-//				//------------------------------------------------------------------------------
-
+				// params ----------------------------------------------------------------------
+				var get64 = getRequest();
+				var get = base64.decode(get64);
+				document.getElementById("item_name").innerText = get['item_name'];
+			
 			}
-            
-            // サンプル データ ----------------------------------------------------------------
-            function sampleItem(){
-                
-                var qr_id = '2001010000160000038101';
-                var area_name = '北海道';
-                
-                var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
-                var params = {qr_id: qr_id, area_name: area_name};
-                
-                var sample = {url: url, params: params};
-                
-                return sample;
-            }
-            
             
             // POST通信 ---------------------------------------------------------------------
             function sendPost(url, params){
@@ -89,22 +54,6 @@
                        
                        }
                        );
-            }
-            
-            // GET通信 ---------------------------------------------------------------------
-            function sendGet(url, params){
-                
-                $.get(
-                      url,     // アクセスするURL
-                      params,  // 送信データ
-                      function(data, status, XHR){  // 処理結果
-                      if(status == 'success'){
-                      resultSpan.innerText = status + JSON.stringify(data);
-                      } else {
-                      resultSpan.innerText = status + JSON.stringify('NG');
-                      }
-                      }
-                      );
             }
             
             // base64 encode ---------------------------------------------------------------
@@ -177,7 +126,21 @@
                 document.getElementById("str").innerText = str;
 				document.getElementById("hash").innerText = hash;
             }
-
+            
+            // GET受け取り -------------------------------------------------------------
+			function getRequest(){
+				if(location.search.length > 1) {
+					var get = new Object();
+					var ret = location.search.substr(1).split("&");
+					for(var i = 0; i < ret.length; i++) {
+						var r = ret[i].split("=");
+						get[r[0]] = r[1];
+					}
+					return get;
+				} else {
+					return false;
+				}
+			}
 
 		</script>
 	</head>
@@ -194,6 +157,9 @@
             </div>
             
             <div class="cont_itemDetail" data-role="content">
+            	
+            	item_name:<div id="item_name"></div>
+            	
                 <form method="POST" action="<%= url_for :controller => :OrderInfoApp, :action => :order %>">
                     <input type="hidden" name="id" value=""/>
                     <input type="hidden" name="buy" value="enable"/>
