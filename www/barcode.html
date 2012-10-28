@@ -18,6 +18,8 @@
             
 		<script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
 		<script type="text/javascript" charset="utf-8" src="js/barcodescanner.js"></script>
+            
+    	<!--<script type="text/javascript" charset="utf-8" src="js/main.js"></script>-->
         <!--
 		<script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
 		<script type="text/javascript" charset="utf-8" src="NativeControls.js"></script>
@@ -145,48 +147,37 @@
                return obj; // obj.params = value
            }
            
-           // AES128 encrypt CBC ------------------------------------------------------------
-           function encAes(str){
-               
-               var pass = randPass(10);
-               var encrypted = CryptoJS.AES.encrypt(str, pass);
-               var enc = new Array();
-               
-               enc['pass64']   = base64.encode(pass, 1);
-               enc['key64']    = base64.encode(encrypted.key, 1);
-               enc['iv64']     = base64.encode(encrypted.iv, 1);
-               enc['str64']    = base64.encode(encrypted, 1);
-               
-               return enc;
-           }
-           
-           // AES128 decrypt CBC -------------------------------------------------------------
-           function decAes(pass64, str64, key64, iv64){
-               
-               pass = base64.decode(pass64, 1);
-               encStr  = base64.decode(str64, 1);
-               key     = base64.decode(key64, 1);
-               iv      = base64.decode(iv64, 1);
-               
-               var decrypted = CryptoJS.AES.encrypt(encStr, pass);
-               
-               return decrypted;
-           }
+           // AES128 encrypt CBC ------------------------------------------------------------- 
+            function encAes(plaintext) {
+				var key = CryptoJS.enc.Hex.parse(randPass(32));
+				var iv  = CryptoJS.enc.Hex.parse(randPass(32));
+				var encrypted = CryptoJS.AES.encrypt(plaintext, key, { iv: iv });
+				var enc = {};
+				enc['key'] = encrypted.key;
+				enc['iv'] = encrypted.iv;
+				enc['enc'] = encrypted;
+				return enc;
+			}
+            
+			// AES128 decrypt CBC -------------------------------------------------------------
+			function decAes(str, key, iv) {
+				var decrypted = CryptoJS.AES.decrypt(str, key, { iv: iv });
+				var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+				return plaintext;
+			}
            
            // ランダム文字列 -------------------------------------------------------------
-           function randPass(length){
-               
-               length = length || '';
-               var a = 'abcdefghijklmnopqrstuvwxyz'
-                   + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                   + '0123456789';
-               a = a.split('');
-               var pass = '';
-               for (var i = 0; i < n; i++) {
-                   pass += a[Math.floor(Math.random() * a.length)];
-               }
-               return pass;
-           }
+           function randPass(length) {
+				length = length || '';
+				// var rand = 'abcdefghijklmnopqrstuvwxyz' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + '0123456789';
+				var rand = 'abcdef' + '0123456789';
+				rand = rand.split('');
+				var pass = '';
+				for (var i = 0; i < length; i++) {
+					pass += rand[Math.floor(Math.random() * rand.length)];
+				}
+				return pass;
+			}
             
             
 		</script>
