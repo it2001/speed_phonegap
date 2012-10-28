@@ -98,9 +98,9 @@
 					if (status == 'success') {
 						console.log("sendPost:data " + data);
 						console.log("sendPost:JSON.stringify " + JSON.stringify(data));
-						console.log("sendPost:base64 " + base64.encode(JSON.stringify(data)));
+						console.log("sendPost:base64 " + base64.encode(data));
 						// 商品詳細
-						window.location.href = "show_item.html?item=" + base64.encode(JSON.stringify(data));
+						window.location.href = "show_item.html?" + base64.encode("item=" + JSON.stringify(data));
 
 					} else {
 						message = 'もう一度QRコードを撮影してください';
