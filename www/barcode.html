@@ -11,106 +11,113 @@
 		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />
 		-->
 
-        <script type="text/javascript" charset="utf-8" src="js/jquery-1.6.4.min.js"></script>
-            
-		<script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
-		<script type="text/javascript" charset="utf-8" src="js/barcodescanner.js"></script>
+		<script type="text/javascript" charset="utf-8" src="js/jquery-1.6.4.min.js"></script>
+
+		<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+		<script type="text/javascript" charset="utf-8" src="barcodescanner.js"></script>
 
 		<script type="text/javascript">
-
 			function onBodyLoad() {
-                
-				document.addEventListener("deviceready", onDeviceReady, false);
 
+				document.addEventListener("deviceready", onDeviceReady, false);
 			}
 
 			function onDeviceReady() {
-                
-                navigator.notification.alert('::onDeviceReady::');
 
-                // バーコード読み込み
-//				window.plugins.barcodeScanner.scan(scannerSuccess, scannerFailure);
-                
-                // test
-                scannerSuccess('2001010000160000038101');
+				// barcode読み取り
+				window.plugins.barcodeScanner.scan(function(result) {
+                                                   
+					// キャンセル
+					if (result.cancelled) {
+//						window.location.href = "setting.html";
+                        scannerSuccess(result.text);
+                                                   
+                    // 読み取り
+					} else {
+						scannerSuccess(result.text);
+					}
+                                                   
+				}, function(error) {
+					scannerFailure(error);
+				});
 			}
 
-			// Barcode 読み込み成功　---------------------------------------------------------
+			// Barcode 読み込み成功　-------------------------------------------------------------
 			function scannerSuccess(result) {
-                
-                console.log("scannerSuccess: result: " + result)
-                
-                // qr_idをJSONテキストで取得
-                var qr_id = result;
-                
-                // 設定・お届け先がある場合に取得
-                var area_name = '北海道';
-                
-                var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
-                var params = {qr_id: qr_id, area_name: area_name};
-                
-                // サーバ通信
+
+				// test
+				result = 'http://www.speed-order.jp/2001010000160000038101';
+
+				console.log("scannerSuccess: result: " + result);
+
+				// qr_id抽出
+				cutProtocole = result.replace(/http:\/\/|https:\/\//, "");
+				console.log("scannerSuccess: cutProtocole: " + cutProtocole);
+
+				cutUrl = cutProtocole.replace(/www.speed-order.jp\/|speed-order.jp\//, "");
+				console.log("scannerSuccess: cutUrl: " + cutUrl);
+
+				// qr_idを取得
+				var qr_id = cutUrl;
+
+				// 設定・お届け先がある場合に取得
+				var area_name = '北海道';
+
+				var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
+
+				var params = {
+					qr_id : qr_id,
+					area_name : area_name
+				};
+
+				// サーバ通信
 				sendPost(url, params);
 			}
 
-			// Barcode 読み込み失敗　---------------------------------------------------------
+			// Barcode 読み込み失敗　---------------------------------------------------------------
 			function scannerFailure(message) {
-                console.log("scannerFailure: message: " + message)
-                
-                message = 'もう一度QRコードを撮影してください';
-                title = 'QRコードの読み取りに失敗しました';
-                button = 'OK';
-                navigator.notification.alert(message, alertCallBack(), title , button);
+				console.log("scannerFailure: message: " + message)
+
+				message = 'もう一度QRコードを撮影してください';
+				title = 'QRコードの読み取りに失敗しました';
+				button = 'OK';
+				navigator.notification.alert(message, alertCallBack(), title, button);
 
 			}
-            
-			// POST通信 ---------------------------------------------------------------------
-            function sendPost(url, params){
-                
-                navigator.notification.alert('::sendPost::');
 
-                $.post(
-                    url,     // アクセスするURL
-                    params,  // 送信データ
-                    function(data, status, XHR){  // 処理結果
-                       if(status == 'success'){
-                       		navigator.notification.alert('::success::');
-//                        	location.href="memo.html?qr_id=" + data;
-                       } else {
-                       		message = 'もう一度QRコードを撮影してください';
-                        	title = '商品情報を取得できませんでした';
-                       		button = 'OK';
-                       		navigator.notification.alert(message, alertCallBack(), title , button);
-                       }
-                
-                    }
-                );
-            }
-            
-            // alertCallBack
-            function alertCallBack(){
-                location.href 'barcode.html';
-            }
-            
-            
+			// POST通信 --------------------------------------------------------------------------
+			function sendPost(url, params) {
+
+				console.log('::sendPost::');
+
+				$.post(url, // アクセスするURL
+				params, // 送信データ
+				function(data, status, XHR) {// 処理結果
+
+					if (status == 'success') {
+						console.log("sendPost: " + status + ':' + JSON.stringify(data));
+
+						// 商品詳細
+						window.location.href = "show_item.html?item=" + JSON.stringify(data);
+
+					} else {
+						message = 'もう一度QRコードを撮影してください';
+						title = '商品情報を取得できませんでした';
+						button = 'OK';
+						navigator.notification.alert(message, alertCallBack(), title, button);
+					}
+				});
+			}
+
+			// alertCallBack -----------------------------------------------------------------------
+			function alertCallBack() {
+				window.location.href = 'barcode.html';
+			}
+
 		</script>
 	</head>
 
 	<body onload="onBodyLoad()">
 
-        <!--
-		<div data-role="page" data-add-back-btn="false">
-            
-			<div data-role="header" data-position="inline">
-				<h1>Please wait...</h1>
-			</div>
-            
-			<div data-role="content">
-			</div>
-            
-		</div>
-        -->
-
 	</body>
 </html>
-
