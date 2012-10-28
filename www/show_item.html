@@ -36,17 +36,23 @@
 				// Alert -----------------------------------------------------------------------
 				navigator.notification.alert("show_item.html");
 
-				// params ----------------------------------------------------------------------
-				var get = getQuery();
-                console.log("get " + get);
+				var params = getQuery();
+//                console.log("params " + params);
+//                console.log("item_name " + params['item']['item_name']);
                 
-                var get_json = JSON.stringify(get['item']);
-                console.log("get_json.decode64 " + decBase64(get_json));
+//                var get = JSON.stringify(params);
+//                console.log("get " + get);
                 
-				var get_item = encJson(get_json);
-                console.log("get_item " + get_item);
-                
-				document.getElementById("item_name").innerText = get['item_name'];
+                var get_json = JSON.stringify(params);
+                console.log("get_json " + get_json);
+//
+//				var get_item = encJson(get_json);
+//                console.log("get_item " + get_item);
+//                
+//                
+//                
+//				document.getElementById("item_name").innerText = params['item']['item_id'];
+                document.getElementById("item_name").innerText = 'test';
 			
 			}
             
@@ -132,16 +138,18 @@
 		    if( 1 < document.location.search.length ){
 		        // 最初の1文字(?記号)を除いた文字列を取得する
 		        var query = document.location.search.substring( 1 );
+                
 		        // クエリの区切り記号(&)で文字列を配列に分割する
 		        var parameters = query.split( '&' );
 		        var result = new Object();
 		        for( var i = 0; i < parameters.length; i++ ){
 		            // パラメータ名とパラメータ値に分割する
-		            var element = parameters[ i ].split( '=' );
-		            var paramName = decodeURIComponent( element[ 0 ] );
-		            var paramValue = decodeURIComponent( element[ 1 ] );
+		            var element    = parameters[ i ].split( '=' );
+		            var paramName  = decodeURIComponent(element[ 0 ]);
+		            var paramValue = decodeURIComponent(element[ 1 ]);
 		            // パラメータ名をキーとして連想配列に追加する
-		            result[ paramName ] = decodeURIComponent( paramValue );
+//		            result[ paramName ] = decodeURIComponent(paramValue);
+                    result[ paramName ] = utf.URLdecode(base64.decode(paramValue, 1);
 		        }
 		        return result;
 		    }
