@@ -12,18 +12,9 @@
 		-->
 
         <script type="text/javascript" charset="utf-8" src="js/jquery-1.6.4.min.js"></script>
-
-        <script type="text/javascript" charset="utf-8" src="js/base64.js"></script>
-        <script type="text/javascript" charset="utf-8" src="js/aes.js"></script>
             
 		<script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
 		<script type="text/javascript" charset="utf-8" src="js/barcodescanner.js"></script>
-            
-    	<!--<script type="text/javascript" charset="utf-8" src="js/main.js"></script>-->
-        <!--
-		<script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
-		<script type="text/javascript" charset="utf-8" src="NativeControls.js"></script>
-        -->
 
 		<script type="text/javascript">
 
@@ -31,153 +22,75 @@
                 
 				document.addEventListener("deviceready", onDeviceReady, false);
 
-				resultSpan = document.getElementById("scan-result");
-
 			}
 
 			function onDeviceReady() {
+                
+                navigator.notification.alert('::onDeviceReady::');
 
                 // バーコード読み込み
-				window.plugins.barcodeScanner.scan(scannerSuccess, scannerFailure);
+//				window.plugins.barcodeScanner.scan(scannerSuccess, scannerFailure);
+                
+                // test
+                scannerSuccess('2001010000160000038101');
 			}
 
 			// Barcode 読み込み成功　---------------------------------------------------------
 			function scannerSuccess(result) {
+                
                 console.log("scannerSuccess: result: " + result)
-				resultSpan.innerText = "success: " + JSON.stringify(result);
                 
-                // サーバ通信
-                var sample = sampleItem();
-                var url    = sample['url'];
-                var params = sample['params'];
+                // qr_idをJSONテキストで取得
+                var qr_id = result;
                 
-                sendPost(url, params);
-			}
-
-			// Barcode 読み込み失敗　---------------------------------------------------------
-			function scannerFailure(message) {
-                console.log("scannerFailure: message: " + message)
-                resultSpan.innerText = "failure: " + JSON.stringify(message)
-                
-//                error = 'QRコードの読み取りに失敗しました';
-//				navigator.notification.alert(error);
-                
-                // サーバ通信
-                var sample = sampleItem();
-                var url    = sample['url'];
-                var params = sample['params'];
-                
-                sendPost(url, params);
-
-			}
-            
-            // サンプル データ ----------------------------------------------------------------
-            function sampleItem(){
-                
-                var qr_id = '2001010000160000038101';
+                // 設定・お届け先がある場合に取得
                 var area_name = '北海道';
                 
                 var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
                 var params = {qr_id: qr_id, area_name: area_name};
                 
-                var sample = {url: url, params: params};
+                // サーバ通信
+				sendPost(url, params);
+			}
+
+			// Barcode 読み込み失敗　---------------------------------------------------------
+			function scannerFailure(message) {
+                console.log("scannerFailure: message: " + message)
                 
-                return sample;
-            }
-            
+                message = 'もう一度QRコードを撮影してください';
+                title = 'QRコードの読み取りに失敗しました';
+                button = 'OK';
+                navigator.notification.alert(message, alertCallBack(), title , button);
+
+			}
             
 			// POST通信 ---------------------------------------------------------------------
             function sendPost(url, params){
+                
+                navigator.notification.alert('::sendPost::');
 
                 $.post(
                     url,     // アクセスするURL
                     params,  // 送信データ
                     function(data, status, XHR){  // 処理結果
-                       resultSpan.innerText = status + JSON.stringify(data);
+                       if(status == 'success'){
+                       		navigator.notification.alert('::success::');
+//                        	location.href="memo.html?qr_id=" + data;
+                       } else {
+                       		message = 'もう一度QRコードを撮影してください';
+                        	title = '商品情報を取得できませんでした';
+                       		button = 'OK';
+                       		navigator.notification.alert(message, alertCallBack(), title , button);
+                       }
                 
                     }
                 );
             }
             
-            // GET通信 ---------------------------------------------------------------------
-            function sendGet(url, params){
-                
-                $.get(
-                    url,     // アクセスするURL
-                    params,  // 送信データ
-                    function(data, status, XHR){  // 処理結果
-                      if(status == 'success'){
-                        resultSpan.innerText = status + JSON.stringify(data);
-                      } else {
-                        resultSpan.innerText = status + JSON.stringify('NG');
-                      }
-                    }
-                );
+            // alertCallBack
+            function alertCallBack(){
+                location.href 'barcode.html';
             }
-            
-           // base64 encode ---------------------------------------------------------------
-           function encBase64(str){
-               
-               b64_str = base64.encode(str, 1);
-               
-               return b64_str;
-           }
-           
-           // base64 decode ----------------------------------------------------------------
-           function decBase64(b64_str){
-               
-               str = base64.decode(b64_str, 1);
-               
-               return str;
-           }
-       
-           // JSON encode ------------------------------------------------------------------
-           function encJson(obj){
-               
-               json = JSON.stringify(obj);
-               
-               return json;
-           }
-           
-           // JSON decode ------------------------------------------------------------------
-           function decJson(json){
-               
-               obj = JSON.parse(json);
-               
-               return obj; // obj.params = value
-           }
-           
-           // AES128 encrypt CBC ------------------------------------------------------------- 
-            function encAes(plaintext) {
-				var key = CryptoJS.enc.Hex.parse(randPass(32));
-				var iv  = CryptoJS.enc.Hex.parse(randPass(32));
-				var encrypted = CryptoJS.AES.encrypt(plaintext, key, { iv: iv });
-				var enc = {};
-				enc['key'] = encrypted.key;
-				enc['iv'] = encrypted.iv;
-				enc['enc'] = encrypted;
-				return enc;
-			}
-            
-			// AES128 decrypt CBC -------------------------------------------------------------
-			function decAes(str, key, iv) {
-				var decrypted = CryptoJS.AES.decrypt(str, key, { iv: iv });
-				var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
-				return plaintext;
-			}
-           
-           // ランダム文字列 -------------------------------------------------------------
-           function randPass(length) {
-				length = length || '';
-				// var rand = 'abcdefghijklmnopqrstuvwxyz' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + '0123456789';
-				var rand = 'abcdef' + '0123456789';
-				rand = rand.split('');
-				var pass = '';
-				for (var i = 0; i < length; i++) {
-					pass += rand[Math.floor(Math.random() * rand.length)];
-				}
-				return pass;
-			}
             
             
 		</script>
@@ -185,6 +98,7 @@
 
 	<body onload="onBodyLoad()">
 
+        <!--
 		<div data-role="page" data-add-back-btn="false">
             
 			<div data-role="header" data-position="inline">
@@ -192,18 +106,10 @@
 			</div>
             
 			<div data-role="content">
-                
-                scanned: <span id="scan-result">n/a</span>
-				
-				<ul>
-                    <li><a href="index.html" >index</a></li>
-                    <li><a href="test.html" >Test</a></li>
-                    <li><a href="memo.html" >Memo</a></li>
-                </ul>
-                
 			</div>
             
 		</div>
+        -->
 
 	</body>
 </html>

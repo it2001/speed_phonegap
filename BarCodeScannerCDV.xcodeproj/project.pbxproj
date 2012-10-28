@@ -46,7 +46,6 @@
 		48967B7115084E3400F4D66A /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48967B7015084E3400F4D66A /* CoreVideo.framework */; };
 		48967B7315084E4200F4D66A /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 48967B7215084E4200F4D66A /* libiconv.dylib */; };
 		48967B7515084E8A00F4D66A /* www in Resources */ = {isa = PBXBuildFile; fileRef = 48967B7415084E8A00F4D66A /* www */; };
-		53CD28CA163CF9160087353C /* main.js in Sources */ = {isa = PBXBuildFile; fileRef = 53CD28C9163CF9160087353C /* main.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,7 +96,6 @@
 		48967B7015084E3400F4D66A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		48967B7215084E4200F4D66A /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		48967B7415084E8A00F4D66A /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
-		53CD28C9163CF9160087353C /* main.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = main.js; path = www/js/main.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,7 +136,6 @@
 		48967AA815084B2800F4D66A = {
 			isa = PBXGroup;
 			children = (
-				53CD28C9163CF9160087353C /* main.js */,
 				48967B7415084E8A00F4D66A /* www */,
 				48967AD415084B2800F4D66A /* BarCodeScannerCDV */,
 				48967AB915084B2800F4D66A /* Frameworks */,
@@ -406,7 +403,6 @@
 				48967B4815084B5100F4D66A /* CDVBarcodeScanner.mm in Sources */,
 				48967B6D15084B5100F4D66A /* zxing-all-in-one.cpp in Sources */,
 				0C1F4923163A2F0100C079D0 /* NativeControls.m in Sources */,
-				53CD28CA163CF9160087353C /* main.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

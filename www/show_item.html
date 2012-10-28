@@ -170,6 +170,13 @@
                 }
                 return pass;
             }
+            
+            function set_item(){
+                
+                
+                document.getElementById("str").innerText = str;
+				document.getElementById("hash").innerText = hash;
+            }
 
 
 		</script>
@@ -177,30 +184,203 @@
 
 	<body onload="onBodyLoad()">
 
-        <div data-role="page" data-add-back-btn="false">
+        <div data-role="page" id="page_itemDetail" data-add-back-btn="false">
             
-			<div data-role="header" data-position="inline">
-				<h1>original.html</h1>
-			</div>
+            <div data-role="header" data-position="inline">
+                <h1>商品情報</h1>
+                <a href="barcode.html" class="ui-btn-left" data-icon="arrow-l" data-direction="reverse">
+                    戻る
+                </a>
+            </div>
             
-			<div data-role="content">
-                
-                <ul>
-                    <li><a href="index.html" >index</a></li>
-                    <li><a href="test.html" >test</a></li>
-                    <li><a href="barcode.html" target="_blank" >Barcode</a></li>
-                </ul>
-                
-			</div>
+            <div class="cont_itemDetail" data-role="content">
+                <form method="POST" action="<%= url_for :controller => :OrderInfoApp, :action => :order %>">
+                    <input type="hidden" name="id" value=""/>
+                    <input type="hidden" name="buy" value="enable"/>
+                    
+                    <!-- 商品情報変更 -->
+                    <% if @item_info_app.item_update_flg == 'enable' && @item_info_app.item_create_time != @item_info_app.item_update_time %>
+                    <div class="data_change">
+                        <div class="tl">
+                            <%= convert_date(@item_info_app.item_update_time.to_i) %>に商品情報が変更されました
+                        </div>
+                    </div>
+                    <% end %>
+                    <!-- /商品情報変更 -->
+                    
+                    <ul class="item_summary" data-role="listview">
+                        
+                        <!-- 商品名 -->
+                        <li class="item_name">
+                            <h1 class="name"><%= @item_info_app.item_name %></h1>
+                        </li>
+                        <!-- /商品名 -->
+                        
+                        <li class="item_img_price">
+                          
+                            <div class="box2">
+                                
+                                <!-- 商品画像 -->
+                                <div class="box2_01 item_img">
+                                    <div class="inner">
+                                        <img src="<%= @item_info_app.item_image %>" width="150" height="150" alt="商品画像" />
+                                    </div>
+                                </div>
+                                <!-- /商品画像 -->
+                                
+                                <div class="box2_02 item_price">
+                                    
+                                    <!-- 価格 -->
+                                    <dl class="price">
+                                        <dt>価格</dt>
+                                        <dd id="item_pirce">
+                                            <%= currency(@item_info_app.item_price) %>
+                                            <% if @item_info_app.item_price.to_i > 0 %>
+                                            <span>円</span>
+                                            <% end %>
+                                        </dd>
+                                    </dl>
+                                    <!-- /価格 -->
+                                    
+                                    <!-- 送料 -->
+                                    <% if @is_pref_flg == 'enable' %>
+                                    <dl class="shippingCost">
+                                        <dt>送料</dt>
+                                        <dd id="order_carriage">
+                                            <span id="carriage"><%= currency(@item_info_app.order_carriage) %>円</span>
+                                        </dd>
+                                    </dl>
+                                    <% end %>
+                                    <!-- /送料 -->
+                                    
+                                    <!-- 送料無料 -->
+                                    <% if @item_info_app.non_carriage_price.to_i > 0 %>
+                                    <dl class="shippingCost">
+                                        <dd id="order_carriage">
+                                            <span><%= currency(@item_info_app.non_carriage_price) %>円以上は送料無料</span>
+                                        </dd>
+                                    </dl>
+                                    <% end %>
+                                    <!-- /送料無料 -->
+                                    
+                                    <!-- 在庫状況 -->
+                                    <% if @item_info_app.item_is_activate_flg == 'disable' || @item_info_app.item_is_ready_flg == 'disable' %>
+                                    <p class="ico ico_backOrder">販売準備中</p>
+                                    <% elsif item_stock_sts(@item_info_app.item_stock_sts) == 'remind' %>
+                                    <p class="ico ico_onlyRemaining">残りわずか</p>
+                                    <% elsif item_stock_sts(@item_info_app.item_stock_sts) == 'discontinued' || @item_info_app.item_is_stop_flg == 'disable' %>
+                                    <p class="ico ico_discontinued">販売中止</p>
+                                    <% elsif item_stock_sts(@item_info_app.item_stock_sts) == 'nostock' %>
+                                    <p class="ico ico_backOrder">入荷待ち</p>
+                                    <% end %>
+                                    <!-- /在庫状況 -->
+                                    
+                                </div>
+                            </div>
+                           
+                        </li>
+                        
+                        <% if @item_info_app.is_sales_flg == 'enable' %>
+                        <% if @is_pref_flg == 'enable' %>
+                        <li class="item_quantity_buy">
+                            <div class="item_buy_price">
+                                <span>ご購入合計金額：</span>
+                                <span id="total"><%= currency(@item_info_app.item_price.to_i + @item_info_app.order_carriage.to_i).to_s + '円(税込)' %></span>
+                            </div>
+                        </li>
+                        <% end %>
+                        <li class="item_quantity_buy">
+                            <div class="box2">
+                                <div class="box2_01 item_quantity">
+                                    <div class="inner">
+                                        <div date-role="fieldcontain">
+                                            <p>
+                                            数量：
+                                            <select class="itemValue" id="order_amount" name="order_amount" onChange="getCarriage(<%= @item_info_app.item_price.to_i %>, <%= @item_info_app.order_carriage.to_i %>, <%= @item_info_app.non_carriage_price.to_i %> )">
+                                                <% order_max_amount(@item_info_app.item_stock_sts, @item_info_app.item_max_sales).each do |i| %>
+                                                <option value="<%= i %>" ><%= i %></option>
+                                                <% end %>
+                                            </select>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="box2_02 item_buy btn_txt_ow">
+                                    <button class="btn_next" type="submit">購入する</button>
+                                </div>
+                            </div>
+                        </li>
+                        <% end %>
+                        
+                        <% if @addressee %>
+                        <li class="item_shippingAddress">
+                            <a href="<%= url_for('/app/Addressee/index?item_id=' + @item_info_app.object) %>">
+                                <p class="address">
+                                現在のお届け先：<span><%= @addressee.recipient_subject %></span>
+                                </p>
+                                <p class="txt">お届け先の変更はこちら</p>
+                            </a>
+                        </li>
+                        <% end %>
+                        
+                        <li class="shop_contact">
+                            <div class="txt" style="font-weight:bold;">
+                                <%= @item_info_app.item_name %>
+                            </div>
+                            <div class="txt">
+                                <%= @item_info_app.item_short_desc %>
+                            </div>
+                        </li>
+                        
+                        <li class="shop_neme">
+                            <a href="#page_shopProfile" deta-transition="slide">
+                                販売者：<span><%= @item_info_app.company_name %></span>
+                                <p class="txt">販売者・特定商取引の詳細はこちら</p>
+                            </a>
+                        </li>
+                        
+                        <li class="shop_contact">
+                            <div class="txt">
+                                販売者へのお問い合わせはこちらから
+                            </div>
+                            
+                            <div class="box2">
+                                <div class="box2_01 contact_link">
+                                    <a class="btn_prev" href="<%= url_for :action => :contacts, :id => @item_info_app.object %>" data-role="button">
+                                        フォームはこちら
+                                    </a>
+                                </div>
+                                
+                                <div class="box2_02 tel_link">
+                                    <a class="btn_prev" href="tel:<%= @item_info_app.company_phone %>" data-role="button">
+                                        電話で問い合わせる
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <% if @item_info_app.is_sales_flg == 'enable' %>
+                        <li class="item_buy_1btn">
+                            <div class="item_buy btn_txt_ow">
+                                <button class="btn_next" type="submit">購入する</button>
+                            </div>
+                        </li>
+                        <% end %>
+                        
+                    </ul>
+                </form>
+            </div>
+            <!-- content -->
             
-            
+            <!-- footer -->
             <div data-role="footer" data-position="fixed">
                 
                 <nav id="custom" data-role="navbar">
                     <ul>
-                        <li><a href="#" id="bercode" data-icon="custom">QRコード</a></li>
-                        <li><a href="#" id="order" data-icon="custom">購入履歴</a></li>
-                        <li><a href="#" id="setting" data-icon="custom">設定</a></li>
+                        <li><a href="barcode.html" id="bercode" data-icon="custom">QRコード</a></li>
+                        <li><a href="show_order_item.html" id="order" data-icon="custom">購入履歴</a></li>
+                        <li><a href="setting.html" id="setting" data-icon="custom">設定</a></li>
                     </ul>
                 </nav>
                 
@@ -233,6 +413,182 @@
                     </style>
                 
             </div>
+            <!-- /footer -->
+            
+        </div>
+        <!-- /page -->
+        
+        <!-- 販売者・特定商取引ここから-->
+        <div id="page_shopProfile" data-role="page" data-add-back-btn="false" data-theme="z">
+            
+            <div data-role="header" data-position="inline">
+                <h1>特定商取引法に基づく表示</h1>
+                <a href="#page_itemDetail" class="ui-btn-left" data-icon="arrow-l" data-direction="reverse">
+                    戻る
+                </a>
+            </div>
+            
+            <!-- コンテンツここから-->
+            <div data-role="content" class="cont_shopProfile">
+                
+                <dl>
+                    <dt>販売業者</dt>
+                    <dd><%= @item_info_app.company_name %><br/>
+                        <% if @item_info_app.company_liaise && @item_info_app.company_liaise != ""%>
+                        （営業時間: <%= @item_info_app.company_liaise %>）
+                        <% end %>
+                    </dd>
+                    
+                    <dt>運営責任者</dt>
+                    <dd><%= @item_info_app.company_president %></dd>
+                    
+                    <dt>所在地</dt>
+                    <dd><%= @item_info_app.company_address1 + @item_info_app.company_address2 + @item_info_app.company_address3 %>
+                    </dd>
+                    
+                    <dt>電話番号</dt>
+                    <dd><%= format_phone(@item_info_app.company_phone) %></dd>
+                    
+                    <!--
+                     <dt>メールアドレス</dt>
+                     <dd><%= @item_info_app.company_mail %></dd> -->
+                    
+                    <dt>商品代金以外の必要料金</dt>
+                    <dd>
+                        <% if @item_info_app.company_charge && @item_info_app.company_charge != '' %>
+                        <%= @item_info_app.company_charge %>
+                        <% else %>
+                        商品代金以外の必要料金はありません。
+                        <% end %>
+                    </dd>
+                    
+                    <dt>お支払方法</dt>
+                    <dd>クレジットカード決済</dd>
+                    
+                    <dt>お支払い期限</dt>
+                    <dd>即時決済</dd>
+                    
+                    <dt>商品の引き渡し時期</dt>
+                    <dd>
+                        <% if @item_info_app.company_report_time && @item_info_app.company_report_time != '' %>
+                        <%= @item_info_app.company_report_time %>
+                        <% else %>
+                        ご入金確認後のお届けになります。詳しい到着日はお尋ね下さい。
+                        <% end %>
+                    </dd>
+                    
+                    <dt>返品・交換について</dt>
+                    <dd>
+                        <% if @item_info_app.company_returned && @item_info_app.company_returned != '' %>
+                        <%= @item_info_app.company_returned %></dd>
+                    <% else %>
+                    お届けした商品がお申し込みと異なっていた場合は交換させて頂きます。
+                    <% end %>
+                </dl>
+                
+                <ul data-role="listview">
+                    <li class="shop_contact">
+                        <div class="txt">販売者へのお問い合わせはこちらから</div>
+                        <div class="box2">
+                            <div class="box2_01">
+                                <a class="btn_prev" href="<%=url_for(:action => :contacts, :id => @item_info_app.object) %>" data-role="button">
+                                    フォームはこちら
+                                </a>
+                            </div>
+                            
+                            <div class="box2_02 tel_link">
+                                <a class="btn_prev" href="tel:<%= @item_info_app.company_phone %>" data-role="button">
+                                    電話で問い合わせる
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                
+            </div>
+            
+            <div data-role="footer" data-position="fixed">
+                
+                <nav id="custom" data-role="navbar">
+                    <ul>
+                        <li><a href="barcode.html" id="bercode" data-icon="custom">QRコード</a></li>
+                        <li><a href="show_order_item.html" id="order" data-icon="custom">購入履歴</a></li>
+                        <li><a href="setting.html" id="setting" data-icon="custom">設定</a></li>
+                    </ul>
+                </nav>
+                
+                <style>
+                    .ui-btn-inner{
+                        padding-top:40px !important;
+                    }
+                    .ui-btn .ui-icon{
+                        width:30px !important;
+                        height:30px !important;
+                        margin-left:-15px !important;
+                        box-shadow:none !important;
+                        -moz-box-shadow:none !important;
+                        -webkit-box-shadow:none !important;
+                        -webkit-border-radius:0 !important;
+                        border-radius:0 !important;
+                    }
+                    #bercode .ui-icon{
+                        background:url(icon/barcode.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+                    #order .ui-icon{
+                        background:url(icon/shopping.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+                    #setting .ui-icon{
+                        background:url(icon/gear2.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+                    </style>
+                
+            </div><!-- /footer -->
+            
+        </div>
+        <!-- 販売者・特定商取引ここまで-->
+            
+            <div data-role="footer" data-position="fixed">
+                
+                <nav id="custom" data-role="navbar">
+                    <ul>
+                        <li><a href="barcode.html" id="bercode" data-icon="custom">QRコード</a></li>
+                        <li><a href="show_order_item.html" id="order" data-icon="custom">購入履歴</a></li>
+                        <li><a href="setting.html" id="setting" data-icon="custom">設定</a></li>
+                    </ul>
+                </nav>
+                
+                <style>
+                    .ui-btn-inner{
+                        padding-top:40px !important;
+                    }
+                    .ui-btn .ui-icon{
+                        width:30px !important;
+                        height:30px !important;
+                        margin-left:-15px !important;
+                        box-shadow:none !important;
+                        -moz-box-shadow:none !important;
+                        -webkit-box-shadow:none !important;
+                        -webkit-border-radius:0 !important;
+                        border-radius:0 !important;
+                    }
+                    #bercode .ui-icon{
+                        background:url(icon/barcode.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+                    #order .ui-icon{
+                        background:url(icon/shopping.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+                    #setting .ui-icon{
+                        background:url(icon/gear2.png) 50% 50% no-repeat !important;
+                        background-size:20px 24px !important;
+                    }
+            	</style>
+                
+            </div><!-- /footer -->
             
 		</div>
 
