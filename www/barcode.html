@@ -47,7 +47,7 @@
 			function scannerSuccess(result) {
 
 				// test
-				result = 'http://www.speed-order.jp/2001010000160000038101';
+				result = 'http://www.speed-order.jp/22001010000180000058101';
 
 				console.log("scannerSuccess: result: " + result);
 
@@ -96,11 +96,11 @@
 				function(data, status, XHR) {// 処理結果
 
 					if (status == 'success') {
-						console.log("sendPost:data " + data);
-						console.log("sendPost:JSON.stringify " + JSON.stringify(data));
-						console.log("sendPost:base64 " + base64.encode(data));
 						// 商品詳細
-						window.location.href = "show_item.html?" + base64.encode("item=" + JSON.stringify(data));
+                        item = utf.URLencode(JSON.stringify(data), 1);
+                        console.log("item " + item);
+                        console.log("item " + utf.URLdecode(item));
+						window.location.href = "show_item.html?item=" + item;
 
 					} else {
 						message = 'もう一度QRコードを撮影してください';

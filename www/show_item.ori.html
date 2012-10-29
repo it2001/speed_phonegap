@@ -12,9 +12,9 @@
 		-->
 		
         <link rel="stylesheet" href="js/jquery.mobile-1.0.1.min.css" type="text/css" />
-
         <script type="text/javascript" charset="utf-8" src="js/jquery-1.6.4.min.js"></script>
         <script type="text/javascript" charset="utf-8" src="js/jquery.mobile-1.0.1.min.js"></script>
+            
         <script type="text/javascript" charset="utf-8" src="js/base64.js"></script>
         <script type="text/javascript" charset="utf-8" src="js/aes.js"></script>
             
@@ -34,44 +34,77 @@
 			function onDeviceReady() {
 
 				// Alert -----------------------------------------------------------------------
-				navigator.notification.alert("show_item.html");
-				
-                // GETでJSON取得
-				var get = getQuery();
-                var params = JSON.parse(get['item']);
-                
-                // 値をセット
-                
-                // 商品名
-				document.getElementById("item_name").innerText = params['item_name'];
-                
-                // 商品画像
-                item_image = '<img src="' + params['item_image'] + '" width="150" height="150" alt="商品画像" />';
-                document.getElementById("item_image").innerHTML = item_image;
-                
-//                // 商品価格
-//                item_price = '0';
-//                if ( intval(params['item_price']) > 0 ){
-//                    item_price = (String)params['item_price'] + '円';
-//                    
-//                } else {
-//                    item_price = '無料';
+				navigator.notification.alert("index.html");
+
+//				// tabbar ----------------------------------------------------------------------
+//                
+//                // Initializating TabBar
+//                if(!window.plugins){
+//                    window.plugins = {};
+//                    window.plugins.nativeControls = new NativeControls();
 //                }
-//                document.getElementById("item_price").innerText = item_price;
-			
+//                
+//                nc = window.plugins.nativeControls;
+//                nc.createTabBar();
+//                nc.createTabBarItem('whoTabItem', 'who', '', {"onSelect": function(){
+//                    navigator.notification.alert('who');
+//                }});
+//                nc.createTabBarItem('whereTabItem', 'where', '', {"onSelect": function(){
+//                    navigator.notification.alert('where');
+//                }});
+//                nc.createTabBarItem('whatTabItem', 'where', '', {"onSelect": function(){
+//                    navigator.notification.alert('where');
+//                }});
+//                nc.showTabBar();
+//                nc.showTabBarItems('whoTabItem', 'whereTabItem', 'whatTabItem');
+//                nativeControls.selectTabBarItem('whoTabItem');
+//                
+//				//------------------------------------------------------------------------------
+
 			}
+            
+            // サンプル データ ----------------------------------------------------------------
+            function sampleItem(){
+                
+                var qr_id = '2001010000160000038101';
+                var area_name = '北海道';
+                
+                var url = 'http://speed-order.jp/class/json_pg/send_item_info.php';
+                var params = {qr_id: qr_id, area_name: area_name};
+                
+                var sample = {url: url, params: params};
+                
+                return sample;
+            }
+            
             
             // POST通信 ---------------------------------------------------------------------
             function sendPost(url, params){
                 
                 $.post(
-                    url,     // アクセスするURL
-                    params,  // 送信データ
-                    function(data, status, XHR){  // 処理結果
+                       url,     // アクセスするURL
+                       params,  // 送信データ
+                       function(data, status, XHR){  // 処理結果
                        resultSpan.innerText = status + JSON.stringify(data);
                        
-                    }
-                );
+                       }
+                       );
+            }
+            
+            // GET通信 ---------------------------------------------------------------------
+            function sendGet(url, params){
+                
+                $.get(
+                      url,     // アクセスするURL
+                      params,  // 送信データ
+                      function(data, status, XHR){  // 処理結果
+                      if(status == 'success'){
+                      resultSpan.innerText = status + JSON.stringify(data);
+                      } else {
+                      resultSpan.innerText = status + JSON.stringify('NG');
+                      }
+                      }
+                      );
             }
             
             // base64 encode ---------------------------------------------------------------
@@ -138,29 +171,13 @@
                 return pass;
             }
             
-            // GET受け取り -------------------------------------------------------------
-			function getQuery(){
-		    if( 1 < document.location.search.length ){
-		        // 最初の1文字(?記号)を除いた文字列を取得する
-		        var query = document.location.search.substring( 1 );
+            function set_item(){
                 
-		        // クエリの区切り記号(&)で文字列を配列に分割する
-		        var parameters = query.split( '&' );
-		        var result = new Object();
-		        for( var i = 0; i < parameters.length; i++ ){
-		            // パラメータ名とパラメータ値に分割する
-		            var element    = parameters[ i ].split( '=' );
-		            var paramKey  = decodeURIComponent(element[ 0 ]);
-                    console.log("paramKey " + paramKey);
-		            var paramValue = decodeURIComponent(element[ 1 ]);
-                    console.log("paramValue " + paramValue);
-		            // パラメータ名をキーとして連想配列に追加する
-                    result[ paramKey ] = paramValue;
-		        }
-		        return result;
-		    }
-		    return null;
-		}
+                
+                document.getElementById("str").innerText = str;
+				document.getElementById("hash").innerText = hash;
+            }
+
 
 		</script>
 	</head>
@@ -177,7 +194,6 @@
             </div>
             
             <div class="cont_itemDetail" data-role="content">
-            	
                 <form method="POST" action="<%= url_for :controller => :OrderInfoApp, :action => :order %>">
                     <input type="hidden" name="id" value=""/>
                     <input type="hidden" name="buy" value="enable"/>
@@ -196,7 +212,7 @@
                         
                         <!-- 商品名 -->
                         <li class="item_name">
-                            <h1 class="name" id="item_name"></h1>
+                            <h1 class="name"><%= @item_info_app.item_name %></h1>
                         </li>
                         <!-- /商品名 -->
                         
@@ -206,7 +222,9 @@
                                 
                                 <!-- 商品画像 -->
                                 <div class="box2_01 item_img">
-                                    <div class="inner" id="item_image"></div>
+                                    <div class="inner">
+                                        <img src="<%= @item_info_app.item_image %>" width="150" height="150" alt="商品画像" />
+                                    </div>
                                 </div>
                                 <!-- /商品画像 -->
                                 
@@ -215,7 +233,12 @@
                                     <!-- 価格 -->
                                     <dl class="price">
                                         <dt>価格</dt>
-                                        <dd id="item_pirce"></dd>
+                                        <dd id="item_pirce">
+                                            <%= currency(@item_info_app.item_price) %>
+                                            <% if @item_info_app.item_price.to_i > 0 %>
+                                            <span>円</span>
+                                            <% end %>
+                                        </dd>
                                     </dl>
                                     <!-- /価格 -->
                                     
